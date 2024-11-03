@@ -23,7 +23,7 @@ app.use(bodyParser.json());
 
 const sendDataToSheet = async (dataToSend) => {
   try {
-    const response = await fetch(`https://script.google.com/macros/s/${sheetID}/exec`, {
+    const response = await fetch(`https://script.google.com/macros/s/${sheetID}/exec?dev=true`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -45,6 +45,7 @@ const sendDataToSheet = async (dataToSend) => {
 // Route to saving abandoned applications
 app.post('/abandoned', async (req, res) => {
   const abandonedFormData = req.body;
+  console.log(abandonedFormData)
 
   try {
       await sendDataToSheet(abandonedFormData)
@@ -58,7 +59,7 @@ app.post('/abandoned', async (req, res) => {
 // Route to saving submitted applications
 app.post('/submitted', async (req, res) => {
   const submittedFormData = req.body;
-
+  console.log(submittedFormData)
   try {
       await sendDataToSheet(submittedFormData)
       res.status(201).json({ message: 'Application Saved!' });
