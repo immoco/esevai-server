@@ -18,7 +18,7 @@ admin.initializeApp({
 });
 const db = admin.firestore();
 
-app.use(cors());
+app.use(cors( {origin: 'https://immo360agency-esevai.web.app'} ));
 app.use(bodyParser.json());
 
 const sendDataToSheet = async (dataToSend) => {
