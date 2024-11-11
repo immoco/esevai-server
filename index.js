@@ -79,7 +79,7 @@ app.post('/update', async (req, res) => {
     // Loop over each certificate and add it to the batch
     Object.keys(certificatesData).forEach(certKey => {
         const certData = certificatesData[certKey];
-        const docRef = db.collection('certificates').doc(certKey); // Each certificate as a document in 'certificates' collection
+        const docRef = db.collection('bot_certificates').doc(certKey); // Each certificate as a document in 'certificates' collection
         batch.set(docRef, certData);
     });
 
