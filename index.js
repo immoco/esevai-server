@@ -71,27 +71,54 @@ app.post('/submitted', async (req, res) => {
 
 //Updating the firstore with sheet data
 app.post('/update', async (req, res) => {
-  const certificatesData = req.body;
+  const data = req.body;
 
   try {
     const batch = db.batch();
+    if (data.sheet_name === 'REVENUE'){
+      // Loop over each certificate and add it to the batch
+      Object.keys(data).forEach(certKey => {
+          const certData = data[certKey];
+          const docRef = db.collection('bot_certificates').doc(certKey); // Each certificate as a document in 'certificates' collection
+          batch.set(docRef, certData);
+      });
+  
+      // Commit the batch
+      await batch.commit();
+      console.log('TN Certificates data populated successfully');
+    }
 
-    // Loop over each certificate and add it to the batch
-    Object.keys(certificatesData).forEach(certKey => {
-        const certData = certificatesData[certKey];
-        const docRef = db.collection('bot_certificates').doc(certKey); // Each certificate as a document in 'certificates' collection
-        batch.set(docRef, certData);
-    });
+    else if (data.sheet_name === 'VOTER ID'){
+      // Loop over each certificate and add it to the batch
+      Object.keys(data).forEach(serKey => {
+          const serData = data[serKey];
+          const docRef = db.collection('voter_id').doc(serKey); // Each certificate as a document in 'certificates' collection
+          batch.set(docRef, serData);
+      });
+  
+      // Commit the batch
+      await batch.commit();
+      console.log('Voter Id Services data populated successfully');
+    }
 
-    // Commit the batch
-    await batch.commit();
-    console.log('Certificates data populated successfully');
+    else if (data.sheet_name === 'AADHAR'){
+      // Loop over each certificate and add it to the batch
+      Object.keys(data).forEach(serKey => {
+          const serData = data[serKey];
+          const docRef = db.collection('aadhar_services').doc(serKey); // Each certificate as a document in 'certificates' collection
+          batch.set(docRef, serData);
+      });
+  
+      // Commit the batch
+      await batch.commit();
+      console.log('AADHAR Services data populated successfully');
+    }
 } catch (error) {
     console.error('Error populating data:', error);
 }
 
   // Process the received data (e.g., save to Firestore)
-  console.log(certificatesData);
+  console.log(data);
 
   // Send response back to Google Apps Script
   res.status(200).send('Data received successfully');
