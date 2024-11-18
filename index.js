@@ -3,10 +3,11 @@ const bodyParser = require('body-parser');
 const admin = require('firebase-admin');
 const cors = require('cors');
 require('dotenv').config();
+const axios = require('axios');
 
 
 const app = express();
-const port = process.env.PORT || 3001;
+const port = process.env.PORT || 3000;
 
 // Initialize Firebase Admin SDK
 
@@ -23,13 +24,15 @@ app.use(bodyParser.json());
 
 const sendDataToSheet = async (dataToSend) => {
   try {
-    const response = await fetch(`https://script.google.com/macros/s/${sheetID}/exec?dev=true`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(dataToSend),
-    });
+    const response = await axios.post(
+      `https://script.google.com/macros/s/${sheetID}/exec?dev=true`, 
+      dataToSend, // Send `dataToSend` as the body
+      {
+        headers: {
+          'Content-Type': 'application/json', // Specify content type
+        },
+      }
+    );
 
     if (!response.ok) {
       throw new Error("Network response was not ok");
@@ -71,16 +74,22 @@ app.post('/submitted', async (req, res) => {
 
 //Updating the firstore with sheet data
 app.post('/update', async (req, res) => {
-  const data = req.body;
+  const received_data = req.body;
+  console.log(received_data)
+  console.log(typeof(received_data))
+
 
   try {
     const batch = db.batch();
-    if (data.sheet_name === 'REVENUE'){
+    if (received_data.sheet_name === 'REVENUE'){
       // Loop over each certificate and add it to the batch
-      Object.keys(data).forEach(certKey => {
-          const certData = data[certKey];
-          const docRef = db.collection('bot_certificates').doc(certKey); // Each certificate as a document in 'certificates' collection
+      Object.keys(received_data).forEach(certKey => {
+        if (certKey !== 'sheet_name'){
+          const certData = received_data[certKey];
+          console.log(certData)
+          const docRef = db.collection('bot_certificates').doc(certKey.toString()); // Each certificate as a document in 'certificates' collection
           batch.set(docRef, certData);
+        }
       });
   
       // Commit the batch
@@ -88,12 +97,14 @@ app.post('/update', async (req, res) => {
       console.log('TN Certificates data populated successfully');
     }
 
-    else if (data.sheet_name === 'VOTER ID'){
+    else if (received_data.sheet_name === 'VOTER ID'){
       // Loop over each certificate and add it to the batch
-      Object.keys(data).forEach(serKey => {
-          const serData = data[serKey];
+      Object.keys(received_data).forEach(serKey => {
+        if (serKey !== 'sheet_name'){
+          const serData = received_data[serKey];
           const docRef = db.collection('voter_id').doc(serKey); // Each certificate as a document in 'certificates' collection
           batch.set(docRef, serData);
+        }
       });
   
       // Commit the batch
@@ -101,12 +112,16 @@ app.post('/update', async (req, res) => {
       console.log('Voter Id Services data populated successfully');
     }
 
-    else if (data.sheet_name === 'AADHAR'){
+    else if (received_data.sheet_name === 'AADHAR'){
       // Loop over each certificate and add it to the batch
-      Object.keys(data).forEach(serKey => {
-          const serData = data[serKey];
+
+      Object.keys(received_data).forEach((serKey) => {
+        if (serKey !== 'sheet_name'){
+          const serData = received_data[serKey];
+          console.log(serData)
           const docRef = db.collection('aadhar_services').doc(serKey); // Each certificate as a document in 'certificates' collection
           batch.set(docRef, serData);
+        } 
       });
   
       // Commit the batch
@@ -118,7 +133,7 @@ app.post('/update', async (req, res) => {
 }
 
   // Process the received data (e.g., save to Firestore)
-  console.log(data);
+  console.log(received_data);
 
   // Send response back to Google Apps Script
   res.status(200).send('Data received successfully');
